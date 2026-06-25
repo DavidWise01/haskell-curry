@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haskell Curry — computation without variables</title>
+<meta name="description" content="LOGIKĒ · the modern foundations — Haskell Curry (1900–1982). He built COMBINATORY LOGIC: a system with no variables at all, just a few fixed combinators (S, K, I) that copy, discard, and rearrange their arguments — yet it is exactly as powerful as Church's λ-calculus and the Turing machine. And his name marks the deepest bridge in logic: the CURRY–HOWARD correspondence, where propositions ARE types and proofs ARE programs. Live: a combinator reducer — watch S, K, I rewrite expressions, and see SKK reduce to the identity. Honest: the combinators came from Schönfinkel; Curry built the theory and shares the correspondence with Howard. David Lee Wise, two-layer honest.">
+<style>
+  :root{--bg:#0c0f17;--panel:#121622;--panel2:#19202f;--edge:#2a3346;--ink:#ede6d6;--dim:#b3ad9a;--faint:#7c7660;
+    --ochre:#d9b66a;--ochre2:#f0d79a;--proof:#5ad1ff;--proof2:#a7e6ff;--one:#7fe0a0;--zero:#fb7185;--amber:#fbbf24;--ember:#fb923c;
+    --mono:'SFMono-Regular',ui-monospace,'Cascadia Code',Menlo,Consolas,monospace;--serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);line-height:1.58;background-image:radial-gradient(1100px 560px at 75% -10%,#1c2436 0%,transparent 55%),radial-gradient(900px 500px at 0% 100%,#14110a 0%,transparent 55%);}
+  .wrap{max-width:1000px;margin:0 auto;padding:44px 26px 90px}
+  header{border-bottom:1px solid var(--edge);padding-bottom:22px;margin-bottom:24px}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--ochre);opacity:.95}
+  h1{font-family:Georgia,serif;font-size:38px;line-height:1.08;margin:.3em 0 .14em;font-weight:600}h1 em{color:var(--ochre2);font-style:italic}
+  .who{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.04em}
+  .sub{color:var(--dim);font-size:16px;max-width:74ch;margin-top:14px}.sub b{color:var(--ink)}
+  .verdicts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:22px 0}@media(max-width:720px){.verdicts{grid-template-columns:1fr}}
+  .vc{border:1px solid var(--edge);border-radius:11px;padding:13px 15px;border-top-width:3px;background:rgba(18,22,34,.6)}
+  .vc .badge{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em}
+  .vc.s{border-top-color:var(--one)}.vc.s .badge{color:var(--one)} .vc.m{border-top-color:var(--amber)}.vc.m .badge{color:var(--amber)} .vc.f{border-top-color:var(--ember)}.vc.f .badge{color:var(--ember)}
+  .vc p{font-size:12px;color:var(--dim);margin:6px 0 0;line-height:1.45}.vc p b{color:var(--ink)}
+  section{margin:36px 0}
+  h2{font-size:13px;font-family:var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--ochre2);border-left:2px solid var(--ochre);padding-left:11px;margin:0 0 6px}
+  .lede{color:var(--dim);font-size:15px;margin:0 0 18px;max-width:80ch}
+  .panel{background:linear-gradient(180deg,var(--panel),#0a0d14);border:1px solid var(--edge);border-radius:14px;padding:20px;box-shadow:0 24px 60px -40px #000}
+  .controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:12px}
+  button{font-family:var(--mono);font-size:12px;color:var(--ink);background:#1a2030;border:1px solid var(--edge);border-radius:8px;padding:8px 12px;cursor:pointer}button:hover{background:#222b3e;border-color:var(--ochre)}
+  button.on{border-color:var(--ochre);background:#2a2414;color:var(--ochre2)}
+  .rules{font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+  .rules b{color:var(--ochre2)}
+  .tape{font-family:var(--mono);font-size:15px;background:#0c1622;border:1px solid var(--edge);border-radius:9px;padding:14px;line-height:2;min-height:120px}
+  .ln{display:flex;gap:10px}.ln .n{color:var(--faint);width:22px}.ln .e{color:var(--proof2)}.ln.done .e{color:var(--one)}
+  .ln .rule{color:var(--ochre);font-size:11px;margin-left:auto}
+  .note{color:var(--dim);font-size:13.5px;border-left:2px solid var(--edge);padding-left:13px;margin:16px 0 0}.note b{color:var(--ink)}
+  .thm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}@media(max-width:620px){.thm{grid-template-columns:1fr}}
+  .tm{border:1px solid var(--edge);border-radius:10px;padding:13px 15px;background:rgba(0,0,0,.14)}.tm b{color:var(--ochre2);font-family:var(--mono);font-size:11px}.tm p{font-size:13px;color:var(--dim);margin:6px 0 0}
+  footer{margin-top:44px;border-top:1px solid var(--edge);padding-top:18px;color:var(--faint);font-family:var(--mono);font-size:11px;line-height:1.7}
+  footer a,.bar2 a{color:var(--ochre)}.bar2{font-family:var(--mono);font-size:11.5px;margin-bottom:16px}.bar2 a{text-decoration:none;border-bottom:1px dotted #4a4126}
+  code{font-family:var(--mono);color:var(--ochre2);background:#15120a;padding:1px 5px;border-radius:5px}
+  blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--ochre);color:var(--ink);font-style:italic;font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="bar2"><a href="https://davidwise01.github.io/ud0/">◄ UD0</a> &nbsp; <a href="https://davidwise01.github.io/alonzo-church/">← Church</a> &nbsp; LOGIKĒ · the modern foundations</div>
+<header>
+  <div class="kicker">LOGIKĒ · the modern foundations · combinatory logic</div>
+  <h1>Haskell <em>Curry</em></h1>
+  <div class="who">1900 – 1982 · Millis, Massachusetts · Penn State &amp; Amsterdam · combinatory logic · the λ in Haskell is named for him</div>
+  <div class="sub">[[alonzo-church]]'s λ-calculus computes with functions and bound variables — and variables, it turns out, are a nuisance: they get captured, renamed, tangled. Curry asked a startling question: can you compute with <b>no variables at all?</b> His answer is <b>combinatory logic</b>. Take three fixed operators — <b>I</b> (do nothing), <b>K</b> (keep the first, throw the second away), and <b>S</b> (share an argument between two functions) — and that's the whole machine. No <code>x</code>, no <code>λ</code>, just these combinators copying, deleting, and rearranging whatever you feed them. It is <em>exactly</em> as powerful as the λ-calculus and the Turing machine. And his name marks logic's deepest bridge — the <b>Curry–Howard correspondence</b>: a proof <em>is</em> a program, a proposition <em>is</em> a type.</div>
+</header>
+<div class="verdicts">
+  <div class="vc s"><span class="badge">✓ STRONG</span><p><b>Foundational, and elegant.</b> Combinatory logic is a complete, variable-free model of computation, provably equivalent to the λ-calculus; and the Curry–Howard correspondence (proofs = programs) is one of the deepest unifications in logic and computer science.</p></div>
+  <div class="vc m"><span class="badge">◐ SHARED CREDIT</span><p><b>Not solo.</b> The combinators came first from Moses Schönfinkel (1924); Curry rediscovered and built the theory. And "Curry–Howard" is named for Curry's observation <em>and</em> William Howard's later formalisation — a bridge with two builders.</p></div>
+  <div class="vc f"><span class="badge">◔ A PARADOX, TOO</span><p><b>Curry's paradox.</b> His name also attaches to a self-referential paradox ("if this sentence is true, then everything is") that threatens naïve logics — a reminder that combinatory systems, untyped, can express dangerous self-reference.</p></div>
+</div>
+
+<section>
+  <h2>I · Compute with no variables — the combinator machine</h2>
+  <p class="lede">Three rewrite rules, applied left-to-right, are the entire calculus. <code>I x → x</code>. <code>K x y → x</code> (keep x, discard y). <code>S x y z → x z (y z)</code> (give z to both x and y, then apply). Pick an expression and reduce it step by step. Watch the famous identity emerge: <b>S K K</b>, applied to anything, hands it straight back — the combinators <em>build</em> the do-nothing operator out of "keep" and "share," with not a variable in sight.</p>
+  <div class="panel">
+    <div class="rules"><span><b>I</b> x → x</span><span><b>K</b> x y → x</span><span><b>S</b> x y z → x z (y z)</span></div>
+    <div class="controls" id="exs"></div>
+    <div class="tape" id="tape"></div>
+    <div class="controls" style="margin-top:12px;margin-bottom:0"><button id="step">reduce one step ▸</button><button id="run">run ▶</button><button id="reset">reset ↺</button></div>
+    <div class="note">Every step just <em>rearranges symbols</em> by a fixed rule — no thinking, no variables, no scope. Yet from S, K, I alone you can build every computable function (numbers, booleans, recursion, the lot). ⚑ This is [[alonzo-church]]'s λ-calculus stripped to its bones: it proves that <b>binding variables is a convenience, not a necessity</b> — computation is, at bottom, just <em>substitution of fixed patterns</em>. Combinatory logic runs inside the implementation of functional languages, and S/K/I are how a compiler can eliminate variables entirely.</div>
+  </div>
+  <blockquote>"The combinators … enable us to dispense with bound variables altogether." <span style="color:var(--faint);font-style:normal;font-size:12px">— Haskell Curry</span></blockquote>
+</section>
+
+<section>
+  <h2>II · Proofs are programs — Curry–Howard</h2>
+  <div class="thm">
+    <div class="tm"><b>PROPOSITIONS = TYPES</b><p>The proposition "A implies B" corresponds exactly to the type of a function from A to B. To <em>have</em> a proof of A→B is to <em>have</em> a program that turns evidence of A into evidence of B.</p></div>
+    <div class="tm"><b>PROOFS = PROGRAMS</b><p>A proof <em>is</em> a typed program; checking the proof <em>is</em> type-checking; simplifying the proof (cut-elimination) <em>is</em> running the program. Logic and computation are two views of one thing.</p></div>
+  </div>
+  <p class="lede" style="margin-top:16px">Curry noticed something uncanny: the rules for <b>combinators</b> and the rules for <b>logical implication</b> have the <em>same shape</em> — the type of K is exactly the logical axiom "A → (B → A)," the type of S is exactly "(A→(B→C)) → ((A→B)→(A→C))." That coincidence is no coincidence: it is the <b>Curry–Howard correspondence</b>, completed by William Howard, and it says that <b>logic and programming are the same activity in different clothing</b>. It is why [[gerhard-gentzen]]'s natural deduction is the design of a type system, why [[bertrand-russell]]'s types reappear in every compiler, and why the proof assistants that verify aircraft software are, literally, <em>programming languages whose programs are proofs</em>. Curry found the seam where the two halves of this lineage — the logic and the computation — turn out to be one cloth. ⚑ The deepest bridge in the field, and his name is on it.</p>
+</section>
+
+<section>
+  <h2>III · The variable-killer</h2>
+  <p class="note" style="border-color:var(--amber)"><b style="color:var(--amber)">Gate kept on.</b> The results are <b>real and deep</b>: combinatory logic is a complete, rigorous, variable-free model of computation equivalent to the λ-calculus, and the Curry–Howard correspondence is one of the most profound unifications in all of logic and computer science. The honest qualifications are about <b>credit</b>. The combinators themselves were first introduced by <b>Moses Schönfinkel</b> in 1924 (and anticipated by John von Neumann); Curry independently rediscovered them around 1927 and, crucially, spent his career building the <em>systematic theory</em> — combinatory logic as a foundation — so the field is genuinely his even if the spark was Schönfinkel's. The famous correspondence is named "<b>Curry–Howard</b>" for a reason: Curry observed the parallel between combinator types and logical axioms in the 1930s–50s, and <b>William Alvin Howard</b> extended it to full natural deduction in 1969 — two builders, one bridge. His name also marks <b>Curry's paradox</b>, a self-referential trap that shows why untyped combinatory/λ systems must be handled with care. The man: a quiet, careful American logician who worked at Penn State and Amsterdam, helped run one of the first electronic computers (the ENIAC era), and gave functional programming its bones — the language <em>Haskell</em> is named after him. ⚑ He proved you can throw away the variables and still compute everything; and he found the place where proving and programming are the same. [[alonzo-church]] ← · next → Emil Post."</p>
+</section>
+
+<footer>
+  HASKELL CURRY · LOGIKĒ · the modern foundations · two-layer honest<br>
+  live combinator reducer (I x→x; K x y→x; S x y z→x z (y z); reduce step-by-step — verified S K K behaves as the identity I, variable-free)<br>
+  combinatory logic = a variable-free model of computation, equal to the λ-calculus · the Curry–Howard correspondence (propositions = types, proofs = programs) · Curry's paradox<br>
+  ← <a href="https://davidwise01.github.io/alonzo-church/">Church</a> · next → <b>Emil Post</b> (production systems &amp; undecidability)<br>
+  LOGIKĒ · the lineage of logical mathematics · governor David Lee Wise · CC-BY-ND-4.0
+</footer>
+</div>
+<script>
+"use strict";
+(function(){
+  const $=id=>document.getElementById(id);
+  function parse(str){ let i=0; const toks=str.match(/[SKI]|[a-z]|\(|\)/g)||[];
+    function atom(){ if(toks[i]==='('){i++;const t=app();i++;return t;} return {a:toks[i++]}; }
+    function app(){ let t=atom(); while(i<toks.length && toks[i]!==')'){ t={l:t,r:atom()}; } return t; }
+    return app(); }
+  function pretty(t){ if(t.a) return t.a; const r=t.r.a?t.r.a:'('+pretty(t.r)+')'; return pretty(t.l)+r; }
+  function spine(t){ const args=[]; while(t.l){ args.unshift(t.r); t=t.l; } return {head:t.a,args}; }
+  function ap(t,args){ for(const a of args) t={l:t,r:a}; return t; }
+  function step(t){ const {head,args}=spine(t);
+    if(head==='I'&&args.length>=1) return {term:ap(args[0],args.slice(1)), rule:'I x → x'};
+    if(head==='K'&&args.length>=2) return {term:ap(args[0],args.slice(2)), rule:'K x y → x'};
+    if(head==='S'&&args.length>=3){ const x=args[0],y=args[1],z=args[2]; return {term:ap({l:{l:x,r:z},r:{l:y,r:z}},args.slice(3)), rule:'S x y z → x z (y z)'}; }
+    return null; }
+  let term, hist, cur=0;
+  const EX=[['SKKx','SKK = I'],['Kab','keep first, drop second'],['SKKy','again, on y'],['I(Kab)','nested I then K']];
+  function load(i){ cur=i; term=parse(EX[i][0]); hist=[{e:pretty(term),rule:''}]; render(); }
+  function render(){
+    $('exs').innerHTML=EX.map((e,i)=>'<button class="'+(i===cur?'on':'')+'" data-i="'+i+'">'+e[0]+'</button>').join('');
+    $('exs').querySelectorAll('button').forEach(b=>b.onclick=()=>load(+b.dataset.i));
+    $('tape').innerHTML=hist.map((h,i)=>'<div class="ln'+(i===hist.length-1&&h.done?' done':'')+'"><span class="n">'+(i+1)+'.</span><span class="e">'+h.e+'</span>'+(h.rule?'<span class="rule">'+h.rule+'</span>':'')+'</div>').join('');
+  }
+  function doStep(){ const r=step(term); if(!r){ hist[hist.length-1].done=true; render(); return false; } term=r.term; hist.push({e:pretty(term),rule:r.rule}); render(); return true; }
+  $('step').onclick=()=>doStep();
+  $('run').onclick=()=>{ let k=0; const t=setInterval(()=>{ if(!doStep()||k++>30){clearInterval(t);} },360); };
+  $('reset').onclick=()=>load(cur);
+  load(0);
+})();
+</script>
+</body>
+</html>
