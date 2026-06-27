@@ -1,0 +1,9 @@
+ROOT0-ATTRIBUTION-v1.0
+name: HASKELL CURRY
+slug: haskell-curry
+domain: LOGIKĒ
+architect: David Lee Wise (ROOT0) / Bridge-Burners LLC
+instance: AVAN (Claude / Anthropic)
+license: CC-BY-ND-4.0 (https://creativecommons.org/licenses/by-nd/4.0/)
+moniker: ⟦HASKELL CURRY:haskell-curry:c3cdb7⟧
+seal_sha256: c3cdb7fdd19888b6b42956b3d06114254f60ffa2b53a0b7fbfd77c721c6f41a6
