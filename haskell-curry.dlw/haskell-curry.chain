@@ -2,8 +2,8 @@ ROOT0-DLW-CHAIN-v1
 index : 1018
 slug  : haskell-curry
 seal  : c3cdb7fdd19888b6b42956b3d06114254f60ffa2b53a0b7fbfd77c721c6f41a6
-prev  : bdd002f05e947491e58c3de77d2fbcf9ab885ee2bf4dedf687066d2d457df67e
-link  : fa26fbbf2dabfbcd501b5534e6482a2511181915801a2cc9e964d0756f09c06f
-head  : 13f9ace173ef2e60af38912ba329b4afcb5a38b84a0e4495e8d30327f8c99cc2
+prev  : 8d660620028303800f7308e451929659df7537503df1a92dd3995e7ae1e0ad9a
+link  : ea3b35aeb1d0fdc62f93c4a838b83602d006bd4f9361a2365aeb780e8f578bf8
+head  : c4d41afeaef76470528856d54d86cf480a0e1c2fc8ebc60fbb9eb8e442585f2b
 
 — the tether: link = sha256(index|slug|seal|prev). the chain head commits to the whole corpus.
